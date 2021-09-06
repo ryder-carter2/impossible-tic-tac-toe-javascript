@@ -1,0 +1,518 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Impossible Tic-Tac-Toe</title>
+
+    <!-- Impossible Tic-Tac-Toe Styling. -->
+    <style>
+        :root {
+            --main-color: rgb(97, 55, 248);
+            --secondary-color: rgb(238, 238, 238);
+            --text-color: rgb(85, 84, 84);
+            --background-color: #F8F8F8;
+            --inner-shadow: inset 0 0 8px rgba(51, 45, 41, 0.3);
+            --outer-shadow: 0 1px 8px rgba(51, 45, 41, 0.4);
+            --board-border: 4px solid rgb(122, 98, 255);
+        }
+
+        html {
+            height: 100vh;
+        }
+
+        body {
+            margin: 0 auto;
+            width: 100vw;
+            height: 100vh;
+            font-family: 'Avenir', 'Helvetica', sans-serif;
+            color: var(--text-color);
+            background-color: white;
+        }
+
+        button {
+            outline: 0;
+        }
+
+        .game-div {
+            display: grid;
+            grid-auto-rows: auto;
+            grid-template-areas: ". title-div title-div ."". alert-div alert-div ."". board-div board-div ."". restart-div restart-div .";
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .title-div {
+            grid-area: title-div;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 60px;
+        }
+
+        .alert-div {
+            grid-area: alert-div;
+            display: flex;
+            flex-flow: column wrap;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+            width: 100%;
+            color: var(--main-color);
+        }
+
+        .board-div {
+            grid-area: board-div;
+            display: flex;
+            flex-flow: column wrap;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            background-color: rgba(237, 234, 255, 0.822);
+            -moz-box-shadow: var(--outer-shadow);
+            -webkit-box-shadow: var(--outer-shadow);
+            box-shadow: var(--outer-shadow);
+        }
+
+        .board-table {
+            width: 100%;
+            border-radius: 4px;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        .board-table td {
+            width: 2.2em;
+            height: 2.2em;
+            font-size: 2.2em;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .board-table td:active {
+            -moz-box-shadow: var(--inner-shadow);
+            -webkit-box-shadow: var(--inner-shadow);
+            box-shadow: var(--inner-shadow);
+        }
+
+        .board-table td:hover {
+            content: 'X';
+        }
+
+        .restart-div {
+            grid-area: restart-div;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .restart-btn {
+            display: block;
+            border-radius: 5px;
+            width: 100%;
+            height: 70px;
+            background-color: white;
+            color: var(--main-color);
+            border: none;
+            font-size: 1.2em;
+            text-transform: uppercase;
+        }
+
+        .restart-btn:active {
+            background-color: var(--secondary-color);
+            box-shadow: var(--inner-shadow);
+        }
+
+        .right-cell-border {
+            border-right: var(--board-border);
+        }
+
+        .bottom-cell-border {
+            border-bottom: var(--board-border);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Impossible Tic-Tac-Toe Layout. -->
+    <div class="game-div">
+        <div class="title-div">
+            <h1 id="title">Impossible Tic-Tac-Toe</h1>
+        </div>
+        <div class="alert-div">
+            <h2 id="alert-label"></h2>
+        </div>
+        <div class="board-div">
+            <table class="board-table">
+                <tr>
+                    <td class="bottom-cell-border right-cell-border"></td>
+                    <td class="bottom-cell-border right-cell-border"></td>
+                    <td class="bottom-cell-border"></td>
+                </tr>
+                <tr>
+                    <td class="bottom-cell-border right-cell-border"></td>
+                    <td class="bottom-cell-border right-cell-border"></td>
+                    <td class="bottom-cell-border"></td>
+                </tr>
+                <tr>
+                    <td class="right-cell-border"></td>
+                    <td class="right-cell-border"></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+        <div class="restart-div">
+            <button class="restart-btn" id="restart-btn">RESTART GAME</button>
+        </div>
+    </div>
+
+    <!-- Impossible Tic-Tac-Toe Script -->
+    <script type="text/javascript">
+
+        // Grid size for classic 3 x 3 tic-tac-toe, and marker for empty cells.
+        const ROWS = 3;
+        const COLS = 3;
+        const NCELLS = ROWS * COLS;
+        const EMPTY = '';
+
+        // Short helper functions.
+        const get = (id) => document.getElementById(id);
+        const queryAll = (selector) => document.querySelectorAll(selector);
+
+        // Global objects to be used throughout play of tic-tac-toe.
+        var human = { sym: 'X', };
+        var cpu = { sym: 'O', };
+        var gameState = {
+            turn: human,
+            board: [
+                EMPTY, EMPTY, EMPTY,
+                EMPTY, EMPTY, EMPTY,
+                EMPTY, EMPTY, EMPTY
+            ],
+        };
+
+        // Game Logic.
+        initImpossibleTicTacToe();
+
+        /* 
+         * initImpossibleTicTacToe() :: void -> void 
+         *
+         * Initializes the necessary event handlers needed to play the game. 
+         */
+        function initImpossibleTicTacToe() {
+            initBoardHandlers();
+            initRestartGameHandler();
+        }
+
+        /* 
+         * initBoardHandler() :: void -> void
+         *
+         * Assigns an event handler to each cell of the tic-tac-toe board table which
+         * provide users a way to mark their moves.      
+         */
+        function initBoardHandlers() {
+            let cells = queryAll('table td');
+            for (let i = 0; i < NCELLS; i++) {
+                // Perform user move followed by computer's counter move.
+                cells[i].onclick = function () {
+                    // Ignore clicks on cell if the game is over.
+                    if (isGameOver(gameState)) {
+                        return;
+                    }
+                    if (gameState.turn === human && gameState.board[i] === EMPTY) {
+                        makeMove(gameState.board, i, human.sym);
+                        renderMove(cells[i], human.sym, 'rgb(122, 98, 255)');
+                        if (isTie(gameState.board)) {
+                            gameAlert("DRAW!");
+                        } else if (isWin(gameState.board)) {
+                            gameAlert("YOU WIN!");
+                        } else {
+                            switchTurns(gameState);
+                        }
+                    }
+                    if (gameState.turn == cpu) {
+                        let bestMove = minimaxDecision(gameState);
+                        makeMove(gameState.board, bestMove, cpu.sym);
+                        renderMove(cells[bestMove], cpu.sym, 'rgb(85, 84, 84)');
+                        if (isTie(gameState.board)) {
+                            gameAlert("DRAW!");
+                        } else if (isWin(gameState.board)) {
+                            gameAlert("YOU LOSE!");
+                        } else {
+                            switchTurns(gameState);
+                        }
+                    }
+                };
+                // Mark cell with a dim placeholder when it is being hovered over.
+                cells[i].onmouseover = function () {
+                    if (gameState.board[i] === EMPTY) {
+                        this.innerHTML = 'X';
+                        this.style.color = 'rgba(122, 98, 255, 0.45)';
+                    }
+                };
+                // Remove the placeholder marked by the mouseover.
+                cells[i].onmouseout = function () {
+                    if (gameState.board[i] === EMPTY) {
+                        this.innerHTML = EMPTY;
+                    }
+                };
+            }
+        }
+
+        /* 
+         * minimaxDecision(state) :: Object -> Integer
+         * 
+         * An algorithm for calculating minimax decisions on a tic-tac-toe board
+         * Returns the move, here as an integer position, that leads to the outcome 
+         * with the best payoff.
+         * 
+         * Note: The algorithm is based the one described on pg. 166 of the book
+         *       Artificial Intelligence: A Modern Approach in the section Adversial 
+         *       Search.
+         */
+        function minimaxDecision(state) {
+            let moves = findCandidateMoves(state);  // Legal moves left in game.
+            let bestMove;                           // Cpu's best possible move. 
+            let bestPayoff = -Infinity;             // Corresponding score of best move. 
+            for (let move of moves) {
+                let payoff = minVal(result(state, move), 0);
+                if (payoff > bestPayoff) {
+                    bestPayoff = payoff;
+                    bestMove = move;
+                }
+            }
+            return bestMove;
+        }
+
+        /* 
+         * maxVal(state, depth) :: (Object, Integer) -> Integer
+         *  
+         * Go through the whole game tree, all the way to the leaves (with help from 
+         * minVal defined below), to determine the backed-up value of a state.
+         * 
+         * Note: The depth arg is used to count how far down the game tree we go
+         *       before we reach a leaf. The earlier we reach a leaf, the better.
+         */
+        function maxVal(state, depth) {
+            if (isGameOver(state)) {
+                return getTerminalPayoff(state, depth);
+            }
+            let payoff = -Infinity;
+            let moves = findCandidateMoves(state);
+            for (let move of moves) {
+                payoff = Math.max(payoff, minVal(result(state, move), depth + 1));
+            }
+            return payoff;
+        }
+
+        /* 
+         * minVal(state, depth) :: (Object, Integer) -> Integer
+         *  
+         * Go through the entire game tree, all the way to the leaves (helped by 
+         * maxVal defined above), to determine the backed-up value of a state.
+         * 
+         * Note: The depth arg is used to count how far down the game tree we go
+         *       before we reach a leaf. The earlier we reach a leaf, the better.
+         */
+        function minVal(state, depth) {
+            if (isGameOver(state)) {
+                return getTerminalPayoff(state, depth);
+            }
+            let payoff = Infinity;
+            let moves = findCandidateMoves(state);
+            for (let move of moves) {
+                payoff = Math.min(payoff, maxVal(result(state, move), depth + 1));
+            }
+            return payoff;
+        }
+
+        /* 
+         * findCandidateMoves(state) :: Object -> Array
+         * 
+         * Returns an array of all possible/legal moves left to make 
+         * in traversing the current game state tree.     
+         */
+        function findCandidateMoves(state) {
+            let candidateMoves = [];
+            const boardIter = state.board.entries();
+            for (let cell of boardIter) {
+                const cellVal = cell[1];
+                if (cellVal == EMPTY) {
+                    const move = cell[0];
+                    candidateMoves.push(move);
+                }
+            }
+            return candidateMoves;
+        }
+
+        /* 
+         * result(state, move) :: (Object, Integer) -> Object
+         * 
+         * Returns the state of the game after player makes the specified move.
+         */
+        function result(state, move) {
+            let movedState = JSON.parse(JSON.stringify(state));
+            movedState.turn = state.turn;
+            makeMove(movedState.board, move, state.turn.sym);
+            switchTurns(movedState);
+            return movedState;
+        }
+
+        /* 
+         * getTerminalPayoff(state, depth) :: (Object, Integer) -> Integer
+         * 
+         * Determines the final numeric value for a game that ends in a terminal 
+         * state, given the depth at which it ended.     
+         */
+        function getTerminalPayoff(state, depth) {
+            let payoff = 0;
+            const board = state.board;
+            if (isWin(board)) {
+                const maxDepth = 9; // Max depth of gamestate tree (NEEDED TO MAKE CPU IMPOSSIBLE TO BEAT).        
+                const winner = (state.turn === human) ? cpu : human;
+                payoff = (winner === cpu) ? (maxDepth - depth) : (-maxDepth - depth);
+            } else if (isTie(board)) {
+                payoff = 0 - depth;
+            }
+            return payoff;
+        }
+
+        // Game state helper functions.
+        function isGameOver(state) {
+            const board = state.board;
+            return isWin(board) || isTie(board);
+        }
+
+        function isWin(board) {
+            return isRowWin(board) || isColumnWin(board) || isDiagonalWin(board);
+        }
+
+        function isRowWin(board) {
+            for (let i = 0; i <= NCELLS - 3; i += 3) {
+                if (board[i] !== EMPTY
+                    && board[i] === board[i + 1]
+                    && board[i] === board[i + 2]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function isColumnWin(board) {
+            for (let i = 0; i < COLS; i++) {
+                if (board[i] !== EMPTY
+                    && board[i] === board[i + 3]
+                    && board[i] === board[i + 6]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function isDiagonalWin(board) {
+            return (
+                (board[0] !== EMPTY
+                    && board[0] === board[4]
+                    && board[0] === board[8])
+                ||
+                (board[2] !== EMPTY
+                    && board[2] === board[4]
+                    && board[2] === board[6])
+            );
+        }
+
+        function isTie(board) {
+            const isBoardFull = !board.some((cell) => cell === EMPTY);
+            return isBoardFull && !isWin(board);
+        }
+
+        function makeMove(board, cell, sym) {
+            if (cell < 0 || cell > (NCELLS - 1)) return;
+            board[cell] = sym;
+        }
+
+        function switchTurns(state) {
+            state.turn = state.turn === human ? cpu : human;
+        }
+
+        // Restart helper functions.
+        function initRestartGameHandler(startingPlayer) {
+            let restartBtn = get('restart-btn');
+            restartBtn.onclick = restartGame;
+        }
+
+        function restartGame() {
+            gameState.turn = human;
+            let alertLabel = get('alert-label');
+            alertLabel.innerHTML = '';
+            clearBoard();
+        }
+
+        // GUI helper functions.
+        function clearBoard() {
+            let cells = queryAll('table td');
+            for (let i = 0; i < NCELLS; i++) {
+                gameState.board[i] = EMPTY;
+                cells[i].innerHTML = EMPTY;
+            }
+        }
+
+        function gameAlert(alertMsg) {
+            let alertLabel = get('alert-label');
+            alertLabel.innerHTML = alertMsg;
+        }
+
+        function renderMove(cellNode, sym, color) {
+            cellNode.style.color = color;
+            cellNode.innerHTML = sym;
+        }
+
+        /* 
+         * Test Minimax Decision. 
+         */
+        //testMinimaxDecision();
+        function testMinimaxDecision() {
+            // Test 1.
+            let testState1 = {
+                turn: human,
+                board: [
+                    'O', 'O', 'X',
+                    EMPTY, EMPTY, 'X',
+                    EMPTY, EMPTY, EMPTY
+                ],
+            };
+            let bestMove1 = minimaxDecision(testState1);
+            console.log(bestMove1 === 8);
+            // Test 2.
+            let testState2 = {
+                turn: cpu,
+                board: [
+                    'O', EMPTY, 'X',
+                    EMPTY, 'O', 'X',
+                    'X', EMPTY, EMPTY
+                ],
+            }
+            let bestMove2 = minimaxDecision(testState2);
+            console.log(bestMove1 === 8);
+            // Test 3.
+            let testState3 = {
+                turn: cpu,
+                board: [
+                    'O', 'O', 'X',
+                    'X', 'O', 'X',
+                    'X', 'X', 'O'
+                ],
+            }
+            console.log(isTie(testState3.board));
+        }
+    </script>
+
+</body>
+
+</html>
